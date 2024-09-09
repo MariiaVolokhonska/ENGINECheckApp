@@ -2,10 +2,21 @@
 
 @{
     ViewData["Title"] = "Home Page";
-    // Ensure data is ordered by CreationTime ascending to reflect correct order in the chart
-    var dataPoints = Model.OrderBy(dp => dp.CreationTime).TakeLast(10).ToList(); // Fetch last 10 points
-                                                                                 // Convert dataPoints to JSON format for JavaScript usage
-    var chartData = System.Text.Json.JsonSerializer.Serialize(dataPoints);
+
+
+
+    var dataPoints = Model.OrderBy(dp => dp.CreationTime).TakeLast(10).ToList(); 
+
+
+    var chartData = System.Text.Json.JsonSerializer.Serialize(dataPoints.Select(dp => new
+
+    {
+
+        CreationTime = dp.CreationTime?.AddHours(2).ToString("yyyy-MM-dd HH:mm:ss"), 
+
+        Temperature = dp.Temperature
+
+    }));
 }
 
 <!DOCTYPE html>
@@ -28,7 +39,6 @@
             margin-top: 20px;
         }
 
-        /* Scroll Button Styles */
         .scroll-btn {
             position: fixed;
             right: 20px;
@@ -54,19 +64,16 @@
 
     <script type="text/javascript">
         document.addEventListener("DOMContentLoaded", function () {
-            // Parse the data points passed from Razor to JavaScript
             var dataPoints = @Html.Raw(chartData);
 
-            // Log the data to the console to verify the CreationTime values
             console.log("Data Points:", dataPoints);
 
-            // Function to render the chart
             function renderChart(dataPoints) {
                 var tempDataPoints = dataPoints.map(function (dp) {
                     return {
-                        x: new Date(dp.CreationTime), // X-axis: CreationTime
-                        y: dp.Temperature, // Y-axis: Temperature
-                        label: new Date(dp.CreationTime).toLocaleString('en-GB', { hour12: false, timeZone: 'GMT', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }) // Full tooltip label
+                        x: new Date(dp.CreationTime), // Keep as is with adjusted time
+                        y: dp.Temperature,
+                        label: dp.CreationTime // Directly use the CreationTime string
                     };
                 });
 
@@ -77,15 +84,15 @@
                         text: "Temperature Over Time (Last 10 Data Points)"
                     },
                     axisX: {
-                        title: "Time (GMT)",
+                        title: "Time",
                         labelFormatter: function (e) {
                             var date = new Date(e.value);
-                            return date.toLocaleTimeString('en-GB', { hour12: false, timeZone: 'GMT' }); // Format as HH:mm:ss
+                            return date.toLocaleTimeString('en-GB', { hour12: false }); 
                         },
                         valueFormatString: "HH:mm:ss",
                         labelAngle: -45,
                         intervalType: "minute",
-                        interval: 1 // Set interval for clean spacing
+                        interval: 1
                     },
                     axisY: {
                         title: "Temperature (°C)",
@@ -108,10 +115,8 @@
                 chart.render();
             }
 
-            // Render the chart with the data points
             renderChart(dataPoints);
 
-            // Scroll to top or bottom functions
             function scrollToTop() {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
@@ -120,7 +125,6 @@
                 window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
             }
 
-            // Show scroll buttons when page is scrolled down
             window.addEventListener('scroll', function () {
                 const scrollUpBtn = document.getElementById('scrollUpBtn');
                 const scrollDownBtn = document.getElementById('scrollDownBtn');
@@ -130,7 +134,6 @@
                     scrollUpBtn.style.display = 'none';
                 }
 
-                // Hide the down button once the user is close to the bottom of the page
                 if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
                     scrollDownBtn.style.display = 'none';
                 } else {
@@ -138,7 +141,6 @@
                 }
             });
 
-            // Event listeners for scroll buttons
             document.getElementById('scrollUpBtn').addEventListener('click', scrollToTop);
             document.getElementById('scrollDownBtn').addEventListener('click', scrollToBottom);
         });
@@ -149,15 +151,14 @@
         <div class="text-center">
             @if (ViewBag.Username != null)
             {
-                <h1 class="display-4">Welcome, @ViewBag.Username!</h1>
+                    <h1 class="display-4">Welcome, @ViewBag.Username!</h1>
             }
             else
             {
-                <h1 class="display-4">Welcome, guest!</h1>
+                    <h1 class="display-4">Welcome, guest!</h1>
             }
         </div>
 
-        <!-- Filter Form -->
         <div class="text-center btn-group">
             <form method="get" action="@Url.Action("Index", "Home")">
                 <button name="days" value="7" class="btn btn-primary">Last 7 Days</button>
@@ -166,34 +167,32 @@
             </form>
         </div>
 
-        <!-- Table -->
         <div class="mt-4">
             <table class="table table-striped">
                 <thead class="thead-dark">
                     <tr>
-                        <th>CreationTime (GMT)</th>
-                        <th>Temperature</th>
+                        <th>CreationTime</th>
+                        <th>Temperature (°C)</th>
                         <th>Info</th>
                     </tr>
                 </thead>
                 <tbody id="data-table-body">
                     @foreach (var item in Model)
+
                     {
-                        <tr>
-                            <td>@item.CreationTime?.ToString("yyyy/MM/dd HH:mm:ss") GMT</td>
-                            <td>@item.Temperature.ToString("0.##")</td>
-                            <td>@item.Info</td>
-                        </tr>
+                            <tr>
+                                <td>@item.CreationTime?.AddHours(2).ToString("yyyy-MM-dd   HH:mm:ss")</td>
+                                <td>@item.Temperature.ToString("0.##")</td>
+                                <td>@item.Info</td>
+                            </tr>
                     }
                 </tbody>
             </table>
         </div>
 
-        <!-- Chart -->
         <div id="chartContainer"></div>
     </div>
 
-    <!-- Scroll Up and Scroll Down Buttons -->
     <button id="scrollUpBtn" class="scroll-btn scroll-up-btn">
         <i class="fas fa-chevron-up"></i>
     </button>
