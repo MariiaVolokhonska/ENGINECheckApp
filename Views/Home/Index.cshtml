@@ -1,0 +1,204 @@
+﻿@model IEnumerable<TempratureData>
+
+@{
+    ViewData["Title"] = "Home Page";
+    // Ensure data is ordered by CreationTime ascending to reflect correct order in the chart
+    var dataPoints = Model.OrderBy(dp => dp.CreationTime).TakeLast(10).ToList(); // Fetch last 10 points
+                                                                                 // Convert dataPoints to JSON format for JavaScript usage
+    var chartData = System.Text.Json.JsonSerializer.Serialize(dataPoints);
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <script src="https://cdn.canvasjs.com/canvasjs.min.js"></script>
+
+    <style>
+        #chartContainer {
+            height: 400px;
+            width: 100%;
+            margin-top: 30px;
+        }
+
+        .btn-group {
+            margin-top: 20px;
+        }
+
+        /* Scroll Button Styles */
+        .scroll-btn {
+            position: fixed;
+            right: 20px;
+            z-index: 1000;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 50%;
+            font-size: 18px;
+            display: none;
+        }
+
+        .scroll-up-btn {
+            bottom: 100px;
+        }
+
+        .scroll-down-btn {
+            bottom: 40px;
+        }
+    </style>
+
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            // Parse the data points passed from Razor to JavaScript
+            var dataPoints = @Html.Raw(chartData);
+
+            // Log the data to the console to verify the CreationTime values
+            console.log("Data Points:", dataPoints);
+
+            // Function to render the chart
+            function renderChart(dataPoints) {
+                var tempDataPoints = dataPoints.map(function (dp) {
+                    return {
+                        x: new Date(dp.CreationTime), // X-axis: CreationTime
+                        y: dp.Temperature, // Y-axis: Temperature
+                        label: new Date(dp.CreationTime).toLocaleString('en-GB', { hour12: false, timeZone: 'GMT', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }) // Full tooltip label
+                    };
+                });
+
+                var chart = new CanvasJS.Chart("chartContainer", {
+                    theme: "light2",
+                    animationEnabled: true,
+                    title: {
+                        text: "Temperature Over Time (Last 10 Data Points)"
+                    },
+                    axisX: {
+                        title: "Time (GMT)",
+                        labelFormatter: function (e) {
+                            var date = new Date(e.value);
+                            return date.toLocaleTimeString('en-GB', { hour12: false, timeZone: 'GMT' }); // Format as HH:mm:ss
+                        },
+                        valueFormatString: "HH:mm:ss",
+                        labelAngle: -45,
+                        intervalType: "minute",
+                        interval: 1 // Set interval for clean spacing
+                    },
+                    axisY: {
+                        title: "Temperature (°C)",
+                        includeZero: false,
+                        valueFormatString: "#0.##"
+                    },
+                    toolTip: {
+                        content: "Time: {label}, Temperature: {y}°C"
+                    },
+                    data: [
+                        {
+                            type: "line",
+                            name: "Temperature Over Time",
+                            showInLegend: true,
+                            dataPoints: tempDataPoints,
+                            color: "#F5A623"
+                        }
+                    ]
+                });
+                chart.render();
+            }
+
+            // Render the chart with the data points
+            renderChart(dataPoints);
+
+            // Scroll to top or bottom functions
+            function scrollToTop() {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            function scrollToBottom() {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }
+
+            // Show scroll buttons when page is scrolled down
+            window.addEventListener('scroll', function () {
+                const scrollUpBtn = document.getElementById('scrollUpBtn');
+                const scrollDownBtn = document.getElementById('scrollDownBtn');
+                if (window.scrollY > 100) {
+                    scrollUpBtn.style.display = 'block';
+                } else {
+                    scrollUpBtn.style.display = 'none';
+                }
+
+                // Hide the down button once the user is close to the bottom of the page
+                if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+                    scrollDownBtn.style.display = 'none';
+                } else {
+                    scrollDownBtn.style.display = 'block';
+                }
+            });
+
+            // Event listeners for scroll buttons
+            document.getElementById('scrollUpBtn').addEventListener('click', scrollToTop);
+            document.getElementById('scrollDownBtn').addEventListener('click', scrollToBottom);
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="text-center">
+            @if (ViewBag.Username != null)
+            {
+                <h1 class="display-4">Welcome, @ViewBag.Username!</h1>
+            }
+            else
+            {
+                <h1 class="display-4">Welcome, guest!</h1>
+            }
+        </div>
+
+        <!-- Filter Form -->
+        <div class="text-center btn-group">
+            <form method="get" action="@Url.Action("Index", "Home")">
+                <button name="days" value="7" class="btn btn-primary">Last 7 Days</button>
+                <button name="days" value="14" class="btn btn-secondary">Last 14 Days</button>
+                <button name="days" value="30" class="btn btn-success">Last 30 Days</button>
+            </form>
+        </div>
+
+        <!-- Table -->
+        <div class="mt-4">
+            <table class="table table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>CreationTime (GMT)</th>
+                        <th>Temperature</th>
+                        <th>Info</th>
+                    </tr>
+                </thead>
+                <tbody id="data-table-body">
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.CreationTime?.ToString("yyyy/MM/dd HH:mm:ss") GMT</td>
+                            <td>@item.Temperature.ToString("0.##")</td>
+                            <td>@item.Info</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Chart -->
+        <div id="chartContainer"></div>
+    </div>
+
+    <!-- Scroll Up and Scroll Down Buttons -->
+    <button id="scrollUpBtn" class="scroll-btn scroll-up-btn">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+    <button id="scrollDownBtn" class="scroll-btn scroll-down-btn">
+        <i class="fas fa-chevron-down"></i>
+    </button>
+</body>
+</html>

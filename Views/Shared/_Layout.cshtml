@@ -1,0 +1,81 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SAFEngine</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/WeatherApp.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <!-- Logo -->
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/logo.png" alt="SAFEngine Logo" style="max-height: 40px;" />
+                    SAFEngine
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Data Visualization</a>
+                        </li>
+                        <li class="nav-item">
+                            <!-- Notification Button with Badge -->
+                            <a id="notifications-link" class="nav-link text-dark position-relative" asp-area="" asp-controller="Home" asp-action="Notifications">
+                                Notifications
+                                <span id="notification-badge" class="badge bg-danger position-absolute top-0 start-100 translate-middle">
+                                    0
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="d-flex align-items-center ms-auto">
+                        <a asp-area="" asp-controller="Account" asp-action="Logout" class="btn btn-outline-primary">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        // Function to load the temperature count from the server
+        function loadTemperatureCount() {
+            var highTempCount = @ViewBag.HighTempCount;
+
+            // Check if the notification has been clicked in this session
+            if (!sessionStorage.getItem('notificationsClicked') && highTempCount > 0) {
+                document.getElementById('notification-badge').innerText = highTempCount;
+                document.getElementById('notification-badge').style.display = 'inline';
+            } else {
+                document.getElementById('notification-badge').style.display = 'none';
+            }
+        }
+
+        // Handle the click on the notifications link to hide the badge
+        document.getElementById('notifications-link').addEventListener('click', function () {
+            sessionStorage.setItem('notificationsClicked', 'true');
+            document.getElementById('notification-badge').style.display = 'none';
+        });
+
+        // Load the temperature count when the page is ready
+        document.addEventListener('DOMContentLoaded', loadTemperatureCount);
+    </script>
+</body>
+</html>
