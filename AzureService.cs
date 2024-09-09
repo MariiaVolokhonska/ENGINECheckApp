@@ -1,4 +1,4 @@
-﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using System.Globalization;
 using System.Text;
@@ -35,14 +35,14 @@ namespace WeatherApp
                 {
                     bool isHeader = true;
                     while (!reader.EndOfStream)
-                    {
+                    {   
                         string? data = reader.ReadLine();
                         if (data != null)
                         {
                             if (!isHeader)
                             {
                                 string[] tempratureInfo = data.Split(",");
-                                if (tempratureInfo.Length >= 4) // Ensure correct number of elements
+                                if (tempratureInfo.Length >= 3) // Ensure correct number of elements
                                 {
                                     if (DateTime.TryParse(tempratureInfo[0], out DateTime creationTime))
                                     {
@@ -50,8 +50,8 @@ namespace WeatherApp
                                         {
                                             CreationTime = creationTime.ToUniversalTime(),
                                             Temperature = double.Parse(tempratureInfo[1], CultureInfo.InvariantCulture),
-                                            Humidity = double.Parse(tempratureInfo[2], CultureInfo.InvariantCulture),
-                                            Info = tempratureInfo[3]
+                                            //Humidity = double.Parse(tempratureInfo[2], CultureInfo.InvariantCulture),
+                                            Info = tempratureInfo[2]
                                         });
                                     }
                                 }
@@ -61,6 +61,7 @@ namespace WeatherApp
                     }
                 }
             }
+            Console.WriteLine("asdasdasd");
             return weatherData;
         }
 
