@@ -15,47 +15,98 @@
 
         @{
             var maxTemperature = Model.Any() ? Model.Max(record => record.Temperature) : (double?)null;
+
+
+
             string maintenanceMessage = null;
+
             string alertClass = "alert-primary"; // Default blue color for general prediction
 
+
+
             if (maxTemperature.HasValue)
+
             {
+
                 if (maxTemperature > 140)
+
                 {
-                    maintenanceMessage = "There could be an overheating problem in 3 days. Please check and maintain your engine.";
+
+                    maintenanceMessage = "3 days"; // Prediction based on code logic
+
                 }
+
                 else if (maxTemperature > 130)
+
                 {
-                    maintenanceMessage = "There could be an overheating problem in 5 days. Please check and maintain your engine.";
+
+                    maintenanceMessage = "5 days"; // Prediction based on code logic
+
                 }
+
                 else if (maxTemperature > 120)
+
                 {
-                    maintenanceMessage = "There could be an overheating problem in 8 days. Please check and maintain your engine.";
+
+                    maintenanceMessage = "8 days"; // Prediction based on code logic
+
                 }
+
             }
+
+
+
+            // Additional check based on the API service results
+
+            string apiPrediction = await WeatherApp.API.InvokeRequestResponseService();
         }
 
         @if (maxTemperature.HasValue && maxTemperature > 120)
+
         {
             <div class="alert alert-danger" role="alert">
-                <strong>Important:</strong> There are sensitive temperature records which require your attention.
+                <strong>Important:</strong> There are sensitive temperature records that require your attention.
             </div>
         }
+
         else
+
         {
             <div class="alert alert-success" role="alert">
                 No issues detected based on the filtered data.
             </div>
         }
 
+        <!-- Breakdown Prediction Section -->
+        <div class="alert alert-info" role="alert">
+            <strong>Breakdown Prediction:</strong>
+            @{
+                if (apiPrediction == "There could be a possible engine breakdown due to overheating.")
+                {
+                    @:Yes
+                }
+                else if (apiPrediction == "No risk of engine breakdown detected.")
+                {
+                    @:False
+                }
+                else
+                {
+                    @:Nothing to say about any breakdown problem.
+                }
+            }
+        </div>
+
+        <!-- Note Section (Days until possible breakdown) -->
         @if (!string.IsNullOrEmpty(maintenanceMessage))
+
         {
             <div class="alert @alertClass" role="alert">
-                <strong>Note:</strong> @maintenanceMessage
+                <strong>Note:</strong> The breakdown could occur in @maintenanceMessage based on temperature data.
             </div>
         }
 
         @if (Model.Any())
+
         {
             <table class="table table-striped">
                 <thead>
@@ -77,10 +128,8 @@
 
                                     : "Date not available";
                                 }
-
                                 @formattedDate
                             </td>
-
                             <td>@record.Temperature</td>
                             <td>@record.Info</td>
                         </tr>
@@ -88,7 +137,9 @@
                 </tbody>
             </table>
         }
+
         else
+
         {
             <div class="alert alert-info" role="alert">
                 No temperature records available.
