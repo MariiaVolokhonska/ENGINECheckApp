@@ -1,4 +1,4 @@
-﻿@using Newtonsoft.Json
+@using Newtonsoft.Json
 @model IEnumerable<WeatherApp.Models.TempratureData>
 
 <!DOCTYPE html>
@@ -71,9 +71,12 @@
                             <td>
                                 @{
                                     var formattedDate = record.CreationTime.HasValue
-                                    ? record.CreationTime.Value.ToString("yyyy/MM/dd, HH:mm:ss") + " GMT"
+
+                                    ? record.CreationTime.Value.AddHours(2).ToString("yyyy/MM/dd, HH:mm:ss")
+
                                     : "Date not available";
                                 }
+
                                 @formattedDate
                             </td>
 
