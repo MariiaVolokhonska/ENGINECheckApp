@@ -61,7 +61,6 @@ namespace WeatherApp
                     }
                 }
             }
-            Console.WriteLine("asdasdasd");
             return weatherData;
         }
 
@@ -114,6 +113,13 @@ namespace WeatherApp
                     csvContent = await streamReader.ReadToEndAsync();
                 }
 
+                // Check if the email or username already exists
+                if (csvContent.Contains(newUserEmail) || csvContent.Contains(newUsername))
+                {
+                    // Throw custom exception to fault the task
+                    throw new Exception("A user with the same email or username already exists.");
+                }
+
                 // Add new user data
                 string newUserRecord = $"{newUserEmail},{newUsername},{newPassword}\n";
                 string updatedCsvContent = csvContent + newUserRecord;
@@ -124,9 +130,11 @@ namespace WeatherApp
             }
             catch (Exception ex)
             {
-                // Log or handle the exception as needed
-                Console.WriteLine($"An error occurred: {ex.Message}");
+                // Re-throw the exception to ensure the task is faulted
+                throw new Exception($"An error occurred during registration: {ex.Message}", ex);
             }
         }
+
     }
 }
+
