@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using WeatherApp.Models;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace WeatherApp.Controllers
 {
@@ -23,12 +24,24 @@ namespace WeatherApp.Controllers
 
             if (ModelState.IsValid)
             {
-                await azureService.RegisterUserAsync(model.Email, model.Username, model.Password);
-                return RedirectToAction("Login", "Account");
-            }
+                // Start the registration task
+                var registerTask = azureService.RegisterUserAsync(model.Email, model.Username, model.Password);
 
-            return View(model);
+                try
+                {
+                    await registerTask;
+                    // If no exception is thrown, continue to the next step
+                    return RedirectToAction("Login", "Account");
+                }
+                catch (Exception ex)
+                {   
+                    // Handle the faulted task
+                    ModelState.AddModelError("", ex.Message);  // Display the error message (e.g., user already exists)
+                }
+            }
+            return View(model);  // Return view with validation errors if any
         }
+
 
         [HttpGet]
         public IActionResult Login()
