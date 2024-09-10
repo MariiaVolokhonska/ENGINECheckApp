@@ -1,9 +1,10 @@
-﻿@model RegisterViewModel
+@model RegisterViewModel
 
 @{
     ViewData["Title"] = "Register";
     Layout = null;
 }
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -73,6 +74,9 @@
     <div class="container">
         <h2 class="display-4 text-center">Register</h2>
 
+        <!-- Display validation errors (including global errors) -->
+        @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
         @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { @class = "form" }))
         {
             @Html.AntiForgeryToken()
@@ -102,7 +106,9 @@
             </div>
 
             <button type="submit" class="btn btn-primary">Register</button>
-        } <div class="register-link">
+        }
+
+        <div class="register-link">
             <p></p>
             <a href="/Account/Login" class="register-button">Click here to login</a>
         </div>
