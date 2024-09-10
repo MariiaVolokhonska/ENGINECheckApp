@@ -64,10 +64,16 @@ namespace WeatherApp.Controllers
         }
 
         // Notifications Action: Checks for high temperature and plays sound alert
-        public IActionResult Notifications()
+        public async Task<IActionResult> Notifications() 
         {
             var azureService = new AzureService();
             var data = azureService.GetWeatherData();
+
+            //get the result of the prediction (word "true" or "false")
+            string req =  await API.InvokeRequestResponseService();
+
+            //put result in ViewBag.Message to show it on Notification page
+            ViewBag.Message = req;
 
             bool playSound = false;
 

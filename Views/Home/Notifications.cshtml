@@ -11,6 +11,7 @@
 <body>
     <div class="container">
         <h1 class="display-4 text-center">Overheating Notifications</h1>
+        <h2>@ViewBag.Message</h2>
 
         @{
             var maxTemperature = Model.Any() ? Model.Max(record => record.Temperature) : (double?)null;
