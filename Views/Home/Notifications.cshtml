@@ -23,7 +23,7 @@
             string alertClass = "alert-primary"; // Default blue color for general prediction
 
 
-
+            /* Commented out because it's not correct way to predict
             if (maxTemperature.HasValue)
 
             {
@@ -53,6 +53,7 @@
                 }
 
             }
+            */
 
 
 
@@ -124,7 +125,7 @@
                                 @{
                                     var formattedDate = record.CreationTime.HasValue
 
-                                    ? record.CreationTime.Value.AddHours(2).ToString("yyyy/MM/dd, HH:mm:ss")
+                                    ? record.CreationTime.Value.AddHours(2).ToString("yyyy-MM-dd   HH:mm:ss")
 
                                     : "Date not available";
                                 }
