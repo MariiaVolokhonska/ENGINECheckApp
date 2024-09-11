@@ -65,9 +65,10 @@
         @if (maxTemperature.HasValue && maxTemperature > 120)
 
         {
-            <div class="alert alert-danger" role="alert">
-                <strong>Important:</strong> There are sensitive temperature records that require your attention.
-            </div>
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+  <strong>Holy guacamole!</strong> You should check in on some of those fields below.
+  
+</div>
         }
 
         else
