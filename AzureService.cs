@@ -27,7 +27,7 @@ namespace WeatherApp
 
             // List all blobs in the container
             var blobs = blobContainerClient.GetBlobs();
-            foreach (BlobItem blobItem in blobs.Where(x => x.Name.Equals("data.csv")))
+            foreach (BlobItem blobItem in blobs.Where(x => x.Name.Equals("generated_data.csv")))
             {
                 BlobClient blobClient = new BlobClient(connectionString, telemetryContainer, blobItem.Name);
                 using var stream = blobClient.OpenRead();
@@ -61,6 +61,7 @@ namespace WeatherApp
                     }
                 }
             }
+            weatherData.Reverse();
             return weatherData;
         }
 

@@ -1,4 +1,5 @@
-@model IEnumerable<TempratureData>
+@using Newtonsoft.Json
+@model IEnumerable<WeatherApp.Models.TempratureData>
 
 @{
     ViewData["Title"] = "Home Page";
@@ -37,6 +38,32 @@
 
         .btn-group {
             margin-top: 20px;
+            width: 100%;
+        }
+
+        .form {
+            width: 100%;
+        }
+
+        .btn-primary, .btn-secondary, .btn-success {
+            float: left;
+            margin-right: 10px;
+        }
+
+        .btn-refresh {
+            margin-right: auto;
+            float: right;
+            background-color: #007bff;
+            width: 38px;
+            height: 38px;
+        }
+
+        .btn-refresh:hover {
+            background-color: #0056b3; 
+        }
+
+        .btn-refresh:active {
+            background-color: #004080;
         }
 
         .scroll-btn {
@@ -66,7 +93,7 @@
         document.addEventListener("DOMContentLoaded", function () {
             var dataPoints = @Html.Raw(chartData);
 
-            console.log("Data Points:", dataPoints);
+            //console.log("Data Points:", dataPoints);
 
             function renderChart(dataPoints) {
                 var tempDataPoints = dataPoints.map(function (dp) {
@@ -91,8 +118,8 @@
                         },
                         valueFormatString: "HH:mm:ss",
                         labelAngle: -45,
-                        intervalType: "minute",
-                        interval: 1
+                        intervalType: "hour",
+                        interval: 2
                     },
                     axisY: {
                         title: "Temperature (°C)",
@@ -160,10 +187,11 @@
         </div>
 
         <div class="text-center btn-group">
-            <form method="get" action="@Url.Action("Index", "Home")">
+            <form method="get" action="@Url.Action("Index", "Home")" class="form">
                 <button name="days" value="7" class="btn btn-primary">Last 7 Days</button>
                 <button name="days" value="14" class="btn btn-secondary">Last 14 Days</button>
                 <button name="days" value="30" class="btn btn-success">Last 30 Days</button>
+                <button class="btn btn-refresh"><i class="fas fa-sync-alt" style="color: white;"></i></button>
             </form>
         </div>
 
@@ -199,5 +227,46 @@
     <button id="scrollDownBtn" class="scroll-btn scroll-down-btn">
         <i class="fas fa-chevron-down"></i>
     </button>
+
+    <!-- Audio element for notification sound -->
+    <audio id="alertSound" src="~/sounds/alert.mp3" preload="auto"></audio>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        // Initial setup
+        var temperatureData = @Html.Raw(JsonConvert.SerializeObject(Model));
+        var currentRecords = 0;
+
+        // Retrieve maintenanceRecords from sessionStorage or initialize it to 0 if not set
+        var maintenanceRecords = sessionStorage.getItem('maintenanceRecords') ? parseInt(sessionStorage.getItem('maintenanceRecords')) : temperatureData.filter(record => record.Temperature >= 120).length;
+
+        // Function to update and check records
+        function checkTemperatureRecords() {
+            // Calculate the number of records above the temperature threshold
+            currentRecords = temperatureData.filter(record => record.Temperature >= 120).length;
+
+            // Check if the current records exceed the previous maintenance records
+            if (currentRecords > maintenanceRecords) {
+                var sound = document.getElementById('alertSound');
+                sound.play();
+            }
+
+            // Update maintenanceRecords and save it to sessionStorage
+            maintenanceRecords = currentRecords;
+            sessionStorage.setItem('maintenanceRecords', maintenanceRecords);  // Save to sessionStorage
+            console.log(`Current Records: ${currentRecords}, Maintenance Records: ${maintenanceRecords}`);
+        }
+
+        // Initial check when the page loads
+        checkTemperatureRecords();
+
+        // Simulate updating temperatureData (you can replace this with actual updates)
+        setInterval(() => {
+            // Assume temperatureData is dynamically updated here
+            checkTemperatureRecords();  // Call the function to check the records
+        }, 1000);  // Check every 5 seconds (you can adjust this interval)
+    });
+</script>
+
 </body>
 </html>

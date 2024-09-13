@@ -36,8 +36,24 @@ namespace WeatherApp.Controllers
                 data = data.Where(d => d.CreationTime >= startDate && d.CreationTime <= endDate).ToList();
             }
 
+            // Calculate the count of records with temperature >= 120
+            ViewBag.HighTempCount = data.Count(d => d.Temperature >= 120);
+
+            bool playSound = false;
+
+            // If data is available, filter for records with high temperature (>= 120)
+            if (ViewBag.HighTempCount != null)
+            {
+                data = data.Where(x => x.Temperature >= 120).ToList();
+                playSound = data.Count != 0;  // Set flag if there are any high-temperature records
+            }
+
             // Calculate the count of records with temperature > 120
-            ViewBag.HighTempCount = data.Count(d => d.Temperature > 120);
+            ViewBag.HighTempCount = data.Count;
+
+            // Pass the flag to the view for playing the sound
+            ViewBag.PlaySound = playSound;
+
 
             // Return the data to the view for rendering
             return View(data);
@@ -56,7 +72,7 @@ namespace WeatherApp.Controllers
                 .Where(d => d.CreationTime >= startDate && d.CreationTime <= endDate)
                 .ToList();
 
-            // Calculate the count of records with temperature > 120
+            // Calculate the count of records with temperature >= 120
             ViewBag.HighTempCount = filteredData.Count(d => d.Temperature > 120);
 
             // Return the filtered data to the view
@@ -77,11 +93,11 @@ namespace WeatherApp.Controllers
 
             bool playSound = false;
 
-            // If data is available, filter for records with high temperature (> 120)
+            // If data is available, filter for records with high temperature (>= 120)
             if (data != null)
             {
-                data = data.Where(x => x.Temperature > 120).ToList();
-                playSound = data.Any();  // Set flag if there are any high-temperature records
+                data = data.Where(x => x.Temperature >= 120).ToList();
+                playSound = data.Count != 0;  // Set flag if there are any high-temperature records
             }
 
             // Calculate the count of records with temperature > 120

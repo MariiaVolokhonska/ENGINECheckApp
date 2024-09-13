@@ -66,7 +66,7 @@ namespace WeatherApp.Controllers
 
                     var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                     await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Notifications", "Home");
                 }
                 ModelState.AddModelError("", "Invalid login attempt.");
                 return View();

@@ -1,6 +1,10 @@
 @using Newtonsoft.Json
 @model IEnumerable<WeatherApp.Models.TempratureData>
 
+@{
+    ViewData["Title"] = "Notifications Page";
+}
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -149,25 +153,7 @@
         }
     </div>
 
-    <!-- Audio element for notification sound -->
-    <audio id="alertSound" src="~/sounds/alert.mp3" preload="auto"></audio>
-
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', (event) => {
-            var temperatureData = @Html.Raw(JsonConvert.SerializeObject(Model));
-            console.log(temperatureData);
-
-            // Check if any of the filtered data requires maintenance
-            var maintenanceRequired = temperatureData.some(record => record.Temperature > 120);
-
-            // Play sound only if maintenance is required
-            if (maintenanceRequired) {
-                var sound = document.getElementById('alertSound');
-                sound.play();
-            }
-        });
-    </script>
 </body>
 </html>
