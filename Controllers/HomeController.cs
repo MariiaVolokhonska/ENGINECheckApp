@@ -27,6 +27,12 @@ namespace WeatherApp.Controllers
             // Create an instance of AzureService and fetch the weather data
             var azureService = new AzureService();
             var data = azureService.GetWeatherData();
+            
+            // Count the current number of notifications (based on the threshold of Temperature >= 120)
+            var currentNotificationNumber = data.Count(d => d.Temperature >= 120);
+
+            // Retrieve the previous notification number from the session (default to 0 if not set)
+            var previousNotificationNumber = HttpContext.Session.GetInt32("NotificationNumber") ?? currentNotificationNumber;
 
             // If the 'days' parameter is provided, filter the data for the given date range
             if (days > 0)
@@ -36,48 +42,21 @@ namespace WeatherApp.Controllers
                 data = data.Where(d => d.CreationTime >= startDate && d.CreationTime <= endDate).ToList();
             }
 
-            // Calculate the count of records with temperature >= 120
-            ViewBag.HighTempCount = data.Count(d => d.Temperature >= 120);
+            // Calculate the number of new notifications
+            var newNotifications = currentNotificationNumber - previousNotificationNumber;
+            
+            // Store the new notification count in the session
+            HttpContext.Session.SetInt32("NotificationNumber", currentNotificationNumber);
 
-            bool playSound = false;
-
-            // If data is available, filter for records with high temperature (>= 120)
-            if (ViewBag.HighTempCount != null)
-            {
-                data = data.Where(x => x.Temperature >= 120).ToList();
-                playSound = data.Count != 0;  // Set flag if there are any high-temperature records
-            }
-
-            // Calculate the count of records with temperature > 120
-            ViewBag.HighTempCount = data.Count;
-
-            // Pass the flag to the view for playing the sound
-            ViewBag.PlaySound = playSound;
-
+            // Store the number of new notifications in ViewBag to display on the view
+            Console.WriteLine(newNotifications);
+            ViewBag.HighTempCount = newNotifications;
 
             // Return the data to the view for rendering
             return View(data);
         }
 
-        // GetFilteredData Action: Filters weather data based on the number of days
-        public IActionResult GetFilteredData(int days)
-        {
-            var endDate = DateTime.UtcNow;
-            var startDate = endDate.AddDays(-days);
-
-            // Fetch and filter the weather data using AzureService
-            var azureService = new AzureService();
-            var data = azureService.GetWeatherData();
-            var filteredData = data
-                .Where(d => d.CreationTime >= startDate && d.CreationTime <= endDate)
-                .ToList();
-
-            // Calculate the count of records with temperature >= 120
-            ViewBag.HighTempCount = filteredData.Count(d => d.Temperature > 120);
-
-            // Return the filtered data to the view
-            return View("Index", filteredData);  // Return to Index view with filtered data
-        }
+        
 
         // Notifications Action: Checks for high temperature and plays sound alert
         public async Task<IActionResult> Notifications() 
@@ -91,20 +70,14 @@ namespace WeatherApp.Controllers
             //put result in ViewBag.Message to show it on Notification page
             ViewBag.Message = req;
 
-            bool playSound = false;
-
             // If data is available, filter for records with high temperature (>= 120)
             if (data != null)
             {
                 data = data.Where(x => x.Temperature >= 120).ToList();
-                playSound = data.Count != 0;  // Set flag if there are any high-temperature records
             }
 
             // Calculate the count of records with temperature > 120
             ViewBag.HighTempCount = data.Count;
-
-            // Pass the flag to the view for playing the sound
-            ViewBag.PlaySound = playSound;
 
             // Return the high-temperature data to the view
             return View(data);

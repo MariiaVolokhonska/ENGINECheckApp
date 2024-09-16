@@ -6,7 +6,7 @@
 
 
 
-    var dataPoints = Model.OrderBy(dp => dp.CreationTime).TakeLast(10).ToList(); 
+    var dataPoints = Model.OrderBy(dp => dp.CreationTime).TakeLast(372).ToList(); //depends on the interval, 372 (to show temp across 1 month) for 2 hour interval and 288 (to show temp across 1 day) for 5 min interval
 
 
     var chartData = System.Text.Json.JsonSerializer.Serialize(dataPoints.Select(dp => new
@@ -93,8 +93,6 @@
         document.addEventListener("DOMContentLoaded", function () {
             var dataPoints = @Html.Raw(chartData);
 
-            //console.log("Data Points:", dataPoints);
-
             function renderChart(dataPoints) {
                 var tempDataPoints = dataPoints.map(function (dp) {
                     return {
@@ -108,18 +106,19 @@
                     theme: "light2",
                     animationEnabled: true,
                     title: {
-                        text: "Temperature Over Time (Last 10 Data Points)"
+                        text: "Temperature Over Time"
                     },
                     axisX: {
                         title: "Time",
+                        /*Neccessary when using smaller intervals
                         labelFormatter: function (e) {
                             var date = new Date(e.value);
                             return date.toLocaleTimeString('en-GB', { hour12: false }); 
-                        },
-                        valueFormatString: "HH:mm:ss",
+                        },*/
+                        valueFormatString: "DD MM YYYY", //changed from HH:mm:ss to suit current interval type
                         labelAngle: -45,
-                        intervalType: "hour",
-                        interval: 2
+                        intervalType: "day", //for 2 hour interval
+                        interval: 1
                     },
                     axisY: {
                         title: "Temperature (°C)",
@@ -186,6 +185,8 @@
             }
         </div>
 
+        <div id="chartContainer"></div>
+
         <div class="text-center btn-group">
             <form method="get" action="@Url.Action("Index", "Home")" class="form">
                 <button name="days" value="7" class="btn btn-primary">Last 7 Days</button>
@@ -218,7 +219,6 @@
             </table>
         </div>
 
-        <div id="chartContainer"></div>
     </div>
 
     <button id="scrollUpBtn" class="scroll-btn scroll-up-btn">
@@ -237,8 +237,9 @@
         var temperatureData = @Html.Raw(JsonConvert.SerializeObject(Model));
         var currentRecords = 0;
 
-        // Retrieve maintenanceRecords from sessionStorage or initialize it to 0 if not set
-        var maintenanceRecords = sessionStorage.getItem('maintenanceRecords') ? parseInt(sessionStorage.getItem('maintenanceRecords')) : temperatureData.filter(record => record.Temperature >= 120).length;
+        // Retrieve maintenanceRecords from sessionStorage or initialize it if not set
+        var maintenanceRecords = sessionStorage.getItem('maintenanceRecords');
+        maintenanceRecords = maintenanceRecords ? parseInt(maintenanceRecords) : temperatureData.filter(record => record.Temperature >= 120).length;
 
         // Function to update and check records
         function checkTemperatureRecords() {
@@ -249,6 +250,7 @@
             if (currentRecords > maintenanceRecords) {
                 var sound = document.getElementById('alertSound');
                 sound.play();
+                console.log(window.location.href);
             }
 
             // Update maintenanceRecords and save it to sessionStorage
@@ -258,15 +260,18 @@
         }
 
         // Initial check when the page loads
-        checkTemperatureRecords();
+        if (window.location.href.toString().indexOf("days") == -1) {
+            checkTemperatureRecords();
 
-        // Simulate updating temperatureData (you can replace this with actual updates)
-        setInterval(() => {
-            // Assume temperatureData is dynamically updated here
-            checkTemperatureRecords();  // Call the function to check the records
-        }, 1000);  // Check every 5 seconds (you can adjust this interval)
-    });
+            // Simulate updating temperatureData (you can replace this with actual updates)
+            setInterval(() => {
+                // Assume temperatureData is dynamically updated here
+                checkTemperatureRecords();  // Call the function to check the records
+            }, 1000);  // Check every 1 second (adjust interval if necessary)
+        }
+    });  // Fixed misplaced parenthesis here
 </script>
+
 
 </body>
 </html>

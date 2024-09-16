@@ -15,7 +15,6 @@
 <body>
     <div class="container">
         <h1 class="display-4 text-center">Overheating Notifications</h1>
-        <h2>@ViewBag.Message</h2>
 
         @{
             var maxTemperature = Model.Any() ? Model.Max(record => record.Temperature) : (double?)null;
@@ -25,41 +24,6 @@
             string maintenanceMessage = null;
 
             string alertClass = "alert-primary"; // Default blue color for general prediction
-
-
-            /* Commented out because it's not correct way to predict
-            if (maxTemperature.HasValue)
-
-            {
-
-                if (maxTemperature > 140)
-
-                {
-
-                    maintenanceMessage = "3 days"; // Prediction based on code logic
-
-                }
-
-                else if (maxTemperature > 130)
-
-                {
-
-                    maintenanceMessage = "5 days"; // Prediction based on code logic
-
-                }
-
-                else if (maxTemperature > 120)
-
-                {
-
-                    maintenanceMessage = "8 days"; // Prediction based on code logic
-
-                }
-
-            }
-            */
-
-
 
             // Additional check based on the API service results
 
@@ -79,7 +43,7 @@
 
         {
             <div class="alert alert-success" role="alert">
-                No issues detected based on the filtered data.
+                No records above 120&deg;C detected.
             </div>
         }
 
@@ -87,13 +51,13 @@
         <div class="alert alert-info" role="alert">
             <strong>Breakdown Prediction:</strong>
             @{
-                if (apiPrediction == "There could be a possible engine breakdown due to overheating.")
+                if (apiPrediction == "true")
                 {
-                    @:Yes
+                    @:There could be a possible engine breakdown due to overheating.
                 }
-                else if (apiPrediction == "No risk of engine breakdown detected.")
+                else if (apiPrediction == "false")
                 {
-                    @:False
+                    @:No risk of engine breakdown detected.
                 }
                 else
                 {

@@ -43,11 +43,11 @@ namespace WeatherApp
                     // Logic to analyze the result and return a more descriptive message
                     if (result.Contains("true"))
                     {
-                        return "There could be a possible engine breakdown due to overheating.";
+                        return "true";
                     }
                     else if (result.Contains("false"))
                     {
-                        return "No risk of engine breakdown detected.";
+                        return "false";
                     }
                     else
                     {

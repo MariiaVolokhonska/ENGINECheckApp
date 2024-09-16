@@ -24,7 +24,7 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Data Visualization</a>
+                            <a id="data-visualization-link" class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Data Visualization</a>
                         </li>
                         <li class="nav-item">
                             <!-- Notification Button with Badge -->
@@ -55,27 +55,31 @@
     @await RenderSectionAsync("Scripts", required: false)
 
     <script>
-        // Function to load the temperature count from the server
-        function loadTemperatureCount() {
-            var highTempCount = @ViewBag.HighTempCount;
-
-            // Check if the notification has been clicked in this session
-            if (!sessionStorage.getItem('notificationsClicked') && highTempCount > 0) {
-                document.getElementById('notification-badge').innerText = highTempCount;
-                document.getElementById('notification-badge').style.display = 'inline';
-            } else {
-                document.getElementById('notification-badge').style.display = 'none';
-            }
+    // Function to load the temperature count from the server
+    function loadTemperatureCount() {
+        var highTempCount = @ViewBag.HighTempCount;
+        
+        // Set the badge count and make it visible if there are notifications
+        if (highTempCount > 0){
+            document.getElementById('notification-badge').innerText = highTempCount;
+            document.getElementById('notification-badge').style.display = 'inline';
         }
-
-        // Handle the click on the notifications link to hide the badge
-        document.getElementById('notifications-link').addEventListener('click', function () {
-            sessionStorage.setItem('notificationsClicked', 'true');
+        else
+            document.getElementById('notification-badge').style.display = 'none';
+    
+        // Handle hiding the notification badge when the Data Visualization link is clicked
+        document.getElementById('data-visualization-link').addEventListener('click', function () {
             document.getElementById('notification-badge').style.display = 'none';
         });
 
-        // Load the temperature count when the page is ready
-        document.addEventListener('DOMContentLoaded', loadTemperatureCount);
+        // Optionally, you can hide the badge if the user is on the homepage
+        if (window.location.href.toString() === "http://localhost:5186/") {
+            document.getElementById('notification-badge').style.display = 'none';
+        }
+    }
+
+    // Load the temperature count when the page is ready
+    document.addEventListener('DOMContentLoaded', loadTemperatureCount);
     </script>
 </body>
 </html>
