@@ -45,7 +45,7 @@
             width: 100%;
         }
 
-        .btn-primary, .btn-secondary, .btn-success {
+        .btn-start, .btn-end, .label-start, .label-end {
             float: left;
             margin-right: 10px;
         }
@@ -132,7 +132,7 @@
                         {
                             type: "line",
                             name: "Temperature Over Time",
-                            showInLegend: true,
+                            showInLegend: false,
                             dataPoints: tempDataPoints,
                             color: "#F5A623"
                         }
@@ -189,9 +189,16 @@
 
         <div class="text-center btn-group">
             <form method="get" action="@Url.Action("Index", "Home")" class="form">
-                <button name="days" value="7" class="btn btn-primary">Last 7 Days</button>
+                <!--<button name="days" value="7" class="btn btn-primary">Last 7 Days</button>
                 <button name="days" value="14" class="btn btn-secondary">Last 14 Days</button>
                 <button name="days" value="30" class="btn btn-success">Last 30 Days</button>
+                -->
+                <label for="startDate" class="label-start">Start Date:</label>
+                <input type="date" id="startDate" name="startDate" class="btn-start" />
+                
+                <label for="endDate" class="label-end">End Date:</label>
+                <input type="date" id="endDate" name="endDate" class="btn-end" />
+
                 <button class="btn btn-refresh"><i class="fas fa-sync-alt" style="color: white;"></i></button>
             </form>
         </div>
@@ -260,15 +267,13 @@
         }
 
         // Initial check when the page loads
-        if (window.location.href.toString().indexOf("days") == -1) {
-            checkTemperatureRecords();
+        checkTemperatureRecords();
 
-            // Simulate updating temperatureData (you can replace this with actual updates)
-            setInterval(() => {
-                // Assume temperatureData is dynamically updated here
-                checkTemperatureRecords();  // Call the function to check the records
-            }, 1000);  // Check every 1 second (adjust interval if necessary)
-        }
+        // Simulate updating temperatureData (you can replace this with actual updates)
+        setInterval(() => {
+            // Assume temperatureData is dynamically updated here
+            checkTemperatureRecords();  // Call the function to check the records
+        }, 1000);  // Check every 1 second (adjust interval if necessary)
     });  // Fixed misplaced parenthesis here
 </script>
 

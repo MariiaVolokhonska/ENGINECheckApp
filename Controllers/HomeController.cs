@@ -19,7 +19,7 @@ namespace WeatherApp.Controllers
         }
 
         // Index Action: Displays weather data, filtered by days if applicable
-        public IActionResult Index(int days = 0)
+        public IActionResult Index(string startDate, string endDate, int? days)
         {
             // Retrieve the username from the claims (for logged-in user)
             ViewBag.Username = User.FindFirst(ClaimTypes.Name)?.Value;
@@ -35,12 +35,19 @@ namespace WeatherApp.Controllers
             var previousNotificationNumber = HttpContext.Session.GetInt32("NotificationNumber") ?? currentNotificationNumber;
 
             // If the 'days' parameter is provided, filter the data for the given date range
-            if (days > 0)
+            if (!string.IsNullOrEmpty(startDate) && !string.IsNullOrEmpty(endDate))
             {
-                var endDate = DateTime.UtcNow;
-                var startDate = endDate.AddDays(-days);
-                data = data.Where(d => d.CreationTime >= startDate && d.CreationTime <= endDate).ToList();
+                DateTime start = DateTime.Parse(startDate);
+                DateTime end = DateTime.Parse(endDate).AddDays(1).AddTicks(-1); // Include entire day
+                data = data.Where(d => d.CreationTime >= start && d.CreationTime <= end).ToList();
             }
+            else if (days.HasValue)
+            {
+                DateTime start = DateTime.Now.AddDays(-days.Value);
+                data = data.Where(d => d.CreationTime >= start).ToList();
+            }
+
+            //data = data.OrderBy(d => d.CreationTime).ToList();
 
             // Calculate the number of new notifications
             var newNotifications = currentNotificationNumber - previousNotificationNumber;
@@ -49,7 +56,6 @@ namespace WeatherApp.Controllers
             HttpContext.Session.SetInt32("NotificationNumber", currentNotificationNumber);
 
             // Store the number of new notifications in ViewBag to display on the view
-            Console.WriteLine(newNotifications);
             ViewBag.HighTempCount = newNotifications;
 
             // Return the data to the view for rendering
@@ -64,17 +70,29 @@ namespace WeatherApp.Controllers
             var azureService = new AzureService();
             var data = azureService.GetWeatherData();
 
-            //get the result of the prediction (word "true" or "false")
-            string req =  await API.InvokeRequestResponseService();
+            // Get the result of the prediction
+            string req = await API.InvokeRequestResponseService(); //change values to false and then back to true, to test Email sending functionality
 
-            //put result in ViewBag.Message to show it on Notification page
+            // Try to get the previous value from a persistent cookie
+            string previousReq = Request.Cookies["apiPrediction"] ?? "false";
+
+            // Put result in ViewBag.Message to show it on the Notification page
             ViewBag.Message = req;
+            Console.WriteLine(req + " " + previousReq);
 
             // If data is available, filter for records with high temperature (>= 120)
             if (data != null)
             {
                 data = data.Where(x => x.Temperature >= 120).ToList();
             }
+
+            if (req == "true" /*&& previousReq == "false"*/)
+            {
+                _ = API.SendEmail();
+                Console.WriteLine("Emial sent!");
+            }
+
+            Response.Cookies.Append("apiPrediction", req);
 
             // Calculate the count of records with temperature > 120
             ViewBag.HighTempCount = data.Count;
