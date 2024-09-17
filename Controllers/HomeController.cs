@@ -86,7 +86,7 @@ namespace WeatherApp.Controllers
                 data = data.Where(x => x.Temperature >= 120).ToList();
             }
 
-            if (req == "true" /*&& previousReq == "false"*/)
+            if (req == "true" && previousReq == "false")
             {
                 _ = API.SendEmail();
                 Console.WriteLine("Emial sent!");

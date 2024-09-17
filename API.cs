@@ -103,8 +103,8 @@ namespace WeatherApp
             var subject = "Send email sample - Multiple recipients";
             var emailContent = new EmailContent(subject)
             {
-                PlainText = "This is plain mail send test body \n Best Wishes!!",
-                Html = "<html><body><h1>Quick send email test</h1><br/><h4>Communication email as a service mail send app working properly</h4><p>Happy Learning!!</p></body></html>"
+                PlainText = "Schedule a maintenance to keep the engine in optimal condidtion.",
+                Html = @"<html><body><a href=""https://imgbb.com/""><img src=""https://i.ibb.co/x60sg4R/logo.png"" alt=""logo"" border=""0"" style=""max-height: 100px;""></a><br/><h4>Attention, dear User!</h4><p>There could be a possible engine breakdown.<br/>Schedule a maintenance to keep the engine in optimal condidtion.</p></body></html>"
             };
                 
             // Step 5: Create the email message
@@ -114,8 +114,6 @@ namespace WeatherApp
                 emailContent
             );
 
-            // Step 6: Send the email
-            //emailClient.SendAsync(WaitUntil.Completed, emailMessage);
             try
             {
                 EmailSendOperation emailSendOperation = await emailClient.SendAsync(WaitUntil.Completed, emailMessage);
