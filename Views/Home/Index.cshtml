@@ -199,7 +199,7 @@
                 <label for="endDate" class="label-end">End Date:</label>
                 <input type="date" id="endDate" name="endDate" class="btn-end" />
 
-                <button class="btn btn-refresh"><i class="fas fa-sync-alt" style="color: white;"></i></button>
+                <button class="btn btn-refresh"><i class="fas fa-sync-alt" style="color: white; align-content: center;"></i></button>
             </form>
         </div>
 
@@ -207,7 +207,7 @@
             <table class="table table-striped">
                 <thead class="thead-dark">
                     <tr>
-                        <th>CreationTime</th>
+                        <th>CreationTime (UTC)</th>
                         <th>Temperature (°C)</th>
                         <th>Info</th>
                     </tr>
@@ -217,7 +217,7 @@
 
                     {
                             <tr>
-                                <td>@item.CreationTime?.AddHours(2).ToString("yyyy-MM-dd   HH:mm:ss")</td>
+                                <td>@item.CreationTime?.ToString("yyyy-MM-dd   HH:mm:ss")</td>
                                 <td>@item.Temperature.ToString("0.##")</td>
                                 <td>@item.Info</td>
                             </tr>
@@ -267,13 +267,15 @@
         }
 
         // Initial check when the page loads
-        checkTemperatureRecords();
+        if (window.location.href == "http://localhost:5186/Home/Index"){
+            checkTemperatureRecords();
 
-        // Simulate updating temperatureData (you can replace this with actual updates)
-        setInterval(() => {
-            // Assume temperatureData is dynamically updated here
-            checkTemperatureRecords();  // Call the function to check the records
-        }, 1000);  // Check every 1 second (adjust interval if necessary)
+            // Simulate updating temperatureData (you can replace this with actual updates)
+            setInterval(() => {
+                // Assume temperatureData is dynamically updated here
+                checkTemperatureRecords();  // Call the function to check the records
+            }, 1000);  // Check every 1 second (adjust interval if necessary)
+        }
     });  // Fixed misplaced parenthesis here
 </script>
 

@@ -81,7 +81,7 @@
             <table class="table table-striped">
                 <thead>
                     <tr>
-                        <th>Creation Time</th>
+                        <th>Creation Time (UTC)</th>
                         <th>Temperature</th>
                         <th>Info</th>
                     </tr>
@@ -94,7 +94,7 @@
                                 @{
                                     var formattedDate = record.CreationTime.HasValue
 
-                                    ? record.CreationTime.Value.AddHours(2).ToString("yyyy-MM-dd   HH:mm:ss")
+                                    ? record.CreationTime.Value.ToString("yyyy-MM-dd   HH:mm:ss")
 
                                     : "Date not available";
                                 }
