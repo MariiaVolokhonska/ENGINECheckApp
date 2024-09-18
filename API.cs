@@ -8,6 +8,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using WeatherApp.Models;
+using Azure.Communication.Email;
 
 namespace WeatherApp
 {
