@@ -11,16 +11,21 @@ namespace WeatherApp.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+       
+
 
         // HomeController constructor
         public HomeController(ILogger<HomeController> logger)
         {
             _logger = logger;
+           
         }
 
         // Index Action: Displays weather data, filtered by days if applicable
-        public IActionResult Index(int days = 0)
+        public async Task<IActionResult> Index(int days = 0)
         {
+           
+            
             // Retrieve the username from the claims (for logged-in user)
             ViewBag.Username = User.FindFirst(ClaimTypes.Name)?.Value;
 

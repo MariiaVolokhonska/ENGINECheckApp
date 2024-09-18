@@ -1,16 +1,101 @@
-﻿using System;
+﻿using Microsoft.Azure.Cosmos.Serialization.HybridRow.RecordIO;
+using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using WeatherApp.Models;
 
 namespace WeatherApp
 {
-    public static class API
+    public  class API
     {
-       public static async ValueTask<string> InvokeRequestResponseService()
+        private readonly CosmosDb<TemperatureForDb> _cosmosDbService;
+        public API()
+        {
+            
+            var accountEndpoint = "https://servicecosmosdb.documents.azure.com:443/";
+            var accountKey = "8cGksnNqTPVgWPBgFtNuamm2MIChlrUAvyAhMC1C0q9Djo4jBumpf6zTLIjNhWAuLcPn1pXShI1bACDbAxVQjg==";
+            var databaseName = "Database";
+            var containerName = "Container";
+
+            _cosmosDbService = new CosmosDb<TemperatureForDb>(accountEndpoint, accountKey, databaseName, containerName);
+        }
+        public async ValueTask<string> requestBodyBuilder()
+        {
+            List<TemperatureForDb> items = await _cosmosDbService.GetAllItemsAsync();
+            var minTemperature= items.Min(x => x.temperature);
+            var maxTemperature = items.Max(x => x.temperature);
+            int avgTemperature = (int)items.Average(x => x.temperature);
+            var medTemperature = FindMedianTemperature(items);
+
+            string date = items.OrderBy(x => x.creationTime).FirstOrDefault().creationTime.ToString();
+            string currentDate= $"{DateTime.Parse(date):u}";
+            string dateToPredict =$"{DateTime.Parse(date).AddDays(2):u}";
+            string[] partsOfDate= currentDate.Split(' ');
+            string[] partsOfDateToPredict = dateToPredict.Split(' ');
+
+            string IsBreakdownToday = DetectBreakdown(items).ToString().ToLower();
+
+
+            var requestBody = $@"
+{{
+  ""Inputs"": {{
+    ""input1"": [
+      {{
+        ""Column1"": ""{partsOfDateToPredict[0]}T{partsOfDateToPredict[1]}"",
+        ""Column2"": ""{partsOfDate[0]}T{partsOfDate[1]}"",
+        ""Column3"": {medTemperature},
+        ""Column4"": {avgTemperature},
+        ""Column5"": {minTemperature},
+        ""Column6"": {maxTemperature},
+        ""Column7"": {IsBreakdownToday}
+      }}
+    ]
+  }},
+  ""GlobalParameters"": {{}}
+}}";
+
+
+            return requestBody;
+        }
+        public int FindMedianTemperature(List<TemperatureForDb> list)
+        {
+            List<TemperatureForDb> sortedList = list.OrderBy(x=>x.temperature).ToList();
+            if (list.Count % 2 != 0)
+            {
+                return sortedList[sortedList.Count / 2].temperature;
+            }
+            else
+            {
+                
+                int mid1 = sortedList[(sortedList.Count / 2) - 1].temperature;
+                int mid2 = sortedList[sortedList.Count / 2].temperature;
+                return (mid1 + mid2) / 2;
+            }
+        }
+        static bool DetectBreakdown(List<TemperatureForDb> unsortedList)
+        {
+            var list =unsortedList.OrderBy(r => r.creationTime).ToList();
+            const double breakdownThreshold = 120.0; // min temperature that can be considered for a breakdown verification purposes
+            const int requiredDurationInMinutes = 5; // minimum amount of minutes IN RAW to be considered a breakdown
+
+            // LINQ: find max amount of minutes inn a raw when temperature >= 120°C
+            int consecutiveAboveThreshold = list
+                .Select(r => r.temperature >= breakdownThreshold) // convert to bool
+                .Aggregate((max: 0, current: 0), (acc, isAboveThreshold) => isAboveThreshold
+                    ? (Math.Max(acc.max, acc.current + 1), acc.current + 1) // increase counter if temp>=120
+                    : (acc.max, 0) // max = 0 if temp<120
+                ).max;
+
+            // return true if more then 5 minutes in raw was 120 degrees
+            return consecutiveAboveThreshold >= requiredDurationInMinutes;
+        }
+
+        public static async ValueTask<string> InvokeRequestResponseService()
         {   
             var handler = new HttpClientHandler()
             {
@@ -20,13 +105,11 @@ namespace WeatherApp
             };
             using (var client = new HttpClient(handler))
             {
-                // Request data goes here
-                // The example below assumes JSON formatting which may be updated
-                // depending on the format your endpoint expects.
-                // More information can be found here:
-                // https://docs.microsoft.com/azure/machine-learning/how-to-deploy-advanced-entry-script
-                var requestBody = "{\r\n  \"Inputs\": {\r\n    \"input1\": [\r\n      {\r\n        \"Column1\": \"2024-07-04T00:00:00Z\",\r\n        \"Column2\": \"2024-07-02T00:00:00Z\",\r\n        \"Column3\": 88.5,\r\n        \"Column4\": 88.5,\r\n        \"Column5\": 85,\r\n        \"Column6\": 92,\r\n        \"Column7\": false\r\n      },\r\n      {\r\n        \"Column1\": \"2024-07-07T00:00:00Z\",\r\n        \"Column2\": \"2024-07-05T00:00:00Z\",\r\n        \"Column3\": 115.985,\r\n        \"Column4\": 115.971951,\r\n        \"Column5\": 88.32,\r\n        \"Column6\": 121.98,\r\n        \"Column7\": false\r\n      },\r\n      {\r\n        \"Column1\": \"2024-07-21T00:00:00Z\",\r\n        \"Column2\": \"2024-07-19T00:00:00Z\",\r\n        \"Column3\": 88.5,\r\n        \"Column4\": 88.5,\r\n        \"Column5\": 85,\r\n        \"Column6\": 92,\r\n        \"Column7\": false\r\n      },\r\n      {\r\n        \"Column1\": \"2024-07-22T00:00:00Z\",\r\n        \"Column2\": \"2024-07-20T00:00:00Z\",\r\n        \"Column3\": 88.5,\r\n        \"Column4\": 88.5,\r\n        \"Column5\": 85,\r\n        \"Column6\": 92,\r\n        \"Column7\": false\r\n      },\r\n      {\r\n        \"Column1\": \"2024-07-05T00:00:00Z\",\r\n        \"Column2\": \"2024-07-03T00:00:00Z\",\r\n        \"Column3\": 88.5,\r\n        \"Column4\": 88.5,\r\n        \"Column5\": 85,\r\n        \"Column6\": 92,\r\n        \"Column7\": true\r\n      }\r\n    ]\r\n  },\r\n  \"GlobalParameters\": {}\r\n}";
+                IConfiguration configuration;
+                API api = new API();
 
+                var requestBody = await api.requestBodyBuilder();
+             
                 // primary key for the endpoint
                 const string apiKey = "hlUtfZh6h5sVUxedaBkefwvVppTb1LyH";
                 if (string.IsNullOrEmpty(apiKey))
