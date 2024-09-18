@@ -22,7 +22,7 @@ namespace WeatherApp.Controllers
         }
 
         // Index Action: Displays weather data, filtered by days if applicable
-        public async Task<IActionResult> Index(int days = 0)
+        public IActionResult Index(string startDate, string endDate, int? days)
         {
            
             
