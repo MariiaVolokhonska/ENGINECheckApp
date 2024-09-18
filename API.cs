@@ -9,6 +9,9 @@ using System.Text;
 using System.Threading.Tasks;
 using WeatherApp.Models;
 using Azure.Communication.Email;
+using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs;
+using Azure;
 
 namespace WeatherApp
 {
@@ -151,6 +154,76 @@ namespace WeatherApp
                     return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     //Console.WriteLine(responseContent);
                 }
+            }
+        }
+
+        public static async Task SendEmail()
+        {
+            string connectionString = "DefaultEndpointsProtocol=https;AccountName=serviceblobstorage1;AccountKey=jMSjaBX5XHPYvkPBWiH49WUR7hf2m2vCSeMTxCcfhtKbq5Ag8WvJt8q8LilTZmjgK9yo0Q3BapVA+AStObPq6w==;EndpointSuffix=core.windows.net";
+            string container = "credential";
+
+            // Get a reference to a container named "sample-container" and then create it
+            BlobContainerClient blobContainerClient = new BlobContainerClient(connectionString, container);
+            List<string> emailAddresses = new List<string>();
+            blobContainerClient.CreateIfNotExists();
+
+            // List all blobs in the container
+            var blobs = blobContainerClient.GetBlobs();
+            foreach (BlobItem blobItem in blobs)
+            {
+                BlobClient blobClient = new BlobClient(connectionString, container, blobItem.Name);
+                using var stream = blobClient.OpenRead();
+                using StreamReader reader = new StreamReader(stream);
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        //Console.WriteLine(reader.ReadLine());
+                        string? data = reader.ReadLine();
+                        if (data != null)
+                        {
+                            string[] userData = data.Split(",");
+                            Console.WriteLine(userData[0]);
+                            emailAddresses.Add(userData[0]);
+                        }
+                    }
+                }
+            }
+
+            string emailConnectionString = "endpoint=https://servicecomms.europe.communication.azure.com/;accesskey=2jMcD9lAXvh21nNuBEhn9ZJGvYdPXYVaStMVmJGEhKwj84LxY82yJQQJ99AIACULyCpJZdPgAAAAAZCSGgbd";
+            var emailClient = new EmailClient(emailConnectionString);
+
+            // Step 4: Create EmailRecipients from the parsed email addresses
+            var emailRecipients = new EmailRecipients(
+                emailAddresses.ConvertAll(email => new EmailAddress(email))
+            );
+
+            var subject = "Send email sample - Multiple recipients";
+            var emailContent = new EmailContent(subject)
+            {
+                PlainText = "Schedule a maintenance to keep the engine in optimal condidtion.",
+                Html = @"<html><body><a href=""https://imgbb.com/""><img src=""https://i.ibb.co/x60sg4R/logo.png"" alt=""logo"" border=""0"" style=""max-height: 100px;""></a><br/><h4>Attention, dear User!</h4><p>There could be a possible engine breakdown.<br/>Schedule a maintenance to keep the engine in optimal condidtion.</p></body></html>"
+            };
+
+            // Step 5: Create the email message
+            var emailMessage = new EmailMessage(
+                senderAddress: "DoNotReply@b77facce-f4ae-4380-842d-98f541411d23.azurecomm.net",
+                recipients: emailRecipients,
+                emailContent
+            );
+
+            try
+            {
+                EmailSendOperation emailSendOperation = await emailClient.SendAsync(WaitUntil.Completed, emailMessage);
+                Console.WriteLine($"Email Sent. Status = {emailSendOperation.Value.Status}");
+
+                /// Get the OperationId so that it can be used for tracking the message for troubleshooting
+                string operationId = emailSendOperation.Id;
+                Console.WriteLine($"Email operation id = {operationId}");
+            }
+            catch (RequestFailedException ex)
+            {
+                /// OperationID is contained in the exception message and can be used for troubleshooting purposes
+                Console.WriteLine($"Email send operation failed with error code: {ex.ErrorCode}, message: {ex.Message}");
             }
         }
 
