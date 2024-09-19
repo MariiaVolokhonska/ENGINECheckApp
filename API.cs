@@ -7,6 +7,7 @@ namespace WeatherApp
 {
     public static class API
     {
+        private readonly CosmosDb<TemperatureForDb> _cosmosDbService;
         public static async ValueTask<string> InvokeRequestResponseService()
         {
             var handler = new HttpClientHandler()
