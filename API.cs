@@ -1,8 +1,18 @@
+using Microsoft.Azure.Cosmos.Serialization.HybridRow.RecordIO;
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.IO;
+using System.Net.Http;
 using System.Net.Http.Headers;
-using Azure;
+using System.Text;
+using System.Threading.Tasks;
+using WeatherApp.Models;
 using Azure.Communication.Email;
-using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs;
+using Azure;
+
 namespace WeatherApp
 {
     public static class API
