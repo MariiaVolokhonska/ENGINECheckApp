@@ -1,0 +1,5 @@
+{
+    "appService.preDeployTask": "publish-release",
+    "appService.deploySubpath": "bin\\Release\\net8.0\\publish",
+    "appService.defaultWebAppToDeploy": "/subscriptions/92c5e732-0b2a-4a29-8f2d-f65e664358d9/resourceGroups/predictive-maintenance/providers/Microsoft.Web/sites/SAFEngine"
+}

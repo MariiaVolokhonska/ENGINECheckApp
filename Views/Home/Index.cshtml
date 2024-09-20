@@ -13,7 +13,7 @@
 
     {
 
-        CreationTime = dp.CreationTime?.AddHours(2).ToString("yyyy-MM-dd HH:mm:ss"), 
+        CreationTime = dp.CreationTime?.ToString("yyyy-MM-dd HH:mm:ss"), 
 
         Temperature = dp.Temperature
 
@@ -109,7 +109,6 @@
                         text: "Temperature Over Time"
                     },
                     axisX: {
-                        title: "Time",
                         /*Neccessary when using smaller intervals
                         labelFormatter: function (e) {
                             var date = new Date(e.value);
@@ -199,7 +198,7 @@
                 <label for="endDate" class="label-end">End Date:</label>
                 <input type="date" id="endDate" name="endDate" class="btn-end" />
 
-                <button class="btn btn-refresh"><i class="fas fa-sync-alt" style="color: white; align-content: center;"></i></button>
+                <button type="submit" class="btn btn-refresh"><i class="fas fa-sync-alt" style="color: white; align-content: center;"></i></button>
             </form>
         </div>
 
@@ -267,7 +266,7 @@
         }
 
         // Initial check when the page loads
-        if (window.location.href == "http://localhost:5186/Home/Index"){
+        if (window.location.href == "https://safengine-apdxfyfrdtfsgjbu.eastus-01.azurewebsites.net/Home/Index" || window.location.href == "https://safengine-apdxfyfrdtfsgjbu.eastus-01.azurewebsites.net/Home/Index?startDate=&endDate="){
             checkTemperatureRecords();
 
             // Simulate updating temperatureData (you can replace this with actual updates)
